@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+option go_package = "interactions/api/proto";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+enum InteractionType {
+   message_sent = 0;
+   phone_revealed = 1;
+}
+
+message ReviewResponse {
+  bool success = 1;
+}
+
+message GetReviewsRequest {
+  string user_id = 1[(buf.validate.field).string.uuid = true];
+}
+
+message GetReviewsResponse {
+  repeated Review reviews = 1;
+}
+
+message Review {
+  string author_id = 1;
+  string text = 2;
+  string ad_id = 3;
+  int32 rating = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string review_id = 6;
+}
+
+message AddReviewRequest {
+  string author_id = 1 [(buf.validate.field).string.uuid = true];
+  string recipient_id = 2 [(buf.validate.field).string.uuid = true];
+  string ad_id = 3 [(buf.validate.field).string.uuid = true];
+  string text = 4 [(buf.validate.field).string.min_len = 1];
+  int32 rating = 5 [(buf.validate.field).int32 = {
+      gt: 0, 
+      lte: 5
+    }];
+}
+
+message GetAverageRatingRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message AverageRatingResponse {
+  float average_rating = 1;
+}
+
+message DeleteReviewRequest {
+  string review_id = 1[(buf.validate.field).string.uuid = true];
+}
+
+message AddInteractionRequest {
+  string user_id = 1[(buf.validate.field).string.uuid = true];
+  string ad_id = 2[(buf.validate.field).string.uuid = true];
+  string seller_id = 3[(buf.validate.field).string.uuid = true];
+  InteractionType type = 4[(buf.validate.field).enum = {
+    defined_only: true
+  }];
+}
+
+message InteractionResponse {
+  bool success = 1;
+}
+
+message GetInteractionRequest {
+  string user_id = 1[(buf.validate.field).string.uuid = true];
+  string ad_id = 2[(buf.validate.field).string.uuid = true];
+  string seller_id = 3[(buf.validate.field).string.uuid = true];
+}
+
+message GetInteractionResponse {
+repeated InteractionType type = 1;
+}
+
+service InteractionService {
+  rpc AddInteraction (AddInteractionRequest) returns (InteractionResponse) {
+    option (google.api.http) = {
+      post: "/v1/interactions"
+      body: "*"
+    };
+  }
+
+  rpc GetInteraction (GetInteractionRequest) returns (GetInteractionResponse) {
+    option (google.api.http) = {
+      post: "/v1/interactions/get"
+      body: "*"
+    };
+  }
+}
+
+
+
+
+
+
+
+
+
